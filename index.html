@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Co-Active Coaching — Field Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0F0F13; color: #E8E4DC; font-family: Georgia, 'Times New Roman', serif; min-height: 100vh; }
+  a { color: inherit; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #1A1A24 0%, #0F0F18 100%); border-bottom: 1px solid #2A2A35; padding: 28px 32px 20px; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #6B6880; margin-bottom: 6px; }
+  .header h1 { font-size: clamp(22px, 4vw, 32px); font-weight: 400; letter-spacing: -0.02em; color: #F0EBE0; line-height: 1.2; }
+  .header p { font-size: 14px; color: #7A7590; margin-top: 6px; font-style: italic; }
+
+  /* Nav */
+  .nav { background: #141418; border-bottom: 1px solid #222228; padding: 0 32px; overflow-x: auto; white-space: nowrap; }
+  .nav-inner { max-width: 900px; margin: 0 auto; display: flex; gap: 4px; }
+  .nav-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 14px 16px; cursor: pointer; font-size: 13px; color: #6B6880; font-family: Georgia, serif; white-space: nowrap; transition: color 0.2s; }
+  .nav-btn.active { border-bottom-color: var(--accent); color: var(--accent); }
+
+  /* Content */
+  .content { max-width: 900px; margin: 0 auto; padding: 32px 32px 64px; }
+
+  /* Cards */
+  .card { background: #141418; border: 1px solid #222228; border-radius: 10px; overflow: hidden; transition: all 0.25s ease; cursor: pointer; margin-bottom: 12px; }
+  .card.open { background: #1A1A24; }
+  .card-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .card-title { font-size: 15px; font-weight: 400; color: #F0EBE0; line-height: 1.3; }
+  .card-preview { font-size: 13px; color: #5A5870; font-style: italic; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; margin-top: 4px; }
+  .card-arrow { font-size: 18px; opacity: 0.7; flex-shrink: 0; transition: transform 0.2s; }
+  .card.open .card-arrow { transform: rotate(180deg); }
+  .card-body { padding: 0 20px 20px; border-top: 1px solid #222228; display: none; }
+  .card.open .card-body { display: block; }
+  .card-desc { font-size: 14px; color: #B8B4AC; line-height: 1.7; margin: 16px 0 20px; }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .card-grid { grid-template-columns: 1fr; } }
+  .card-box { background: #0F0F13; border-radius: 8px; padding: 14px 16px; border: 1px solid #1E1E28; }
+  .card-box-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; opacity: 0.8; }
+  .card-box-item { font-size: 13px; color: #8A8698; margin-bottom: 6px; padding-left: 12px; position: relative; line-height: 1.4; }
+  .card-box-item::before { content: '·'; position: absolute; left: 0; opacity: 0.5; }
+  .card-box-q { font-size: 13px; color: #C8C4BC; margin-bottom: 8px; padding-left: 12px; position: relative; line-height: 1.5; font-style: italic; }
+  .card-box-q::before { content: '›'; position: absolute; left: 0; }
+  .card-when { margin-top: 14px; padding: 10px 14px; border-left: 3px solid; border-radius: 0 6px 6px 0; }
+  .card-when-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; }
+  .card-when-text { font-size: 13px; color: #A8A4A0; font-style: italic; }
+
+  /* Section headers */
+  .section-title { font-size: clamp(16px, 2.5vw, 22px); font-weight: 400; margin: 0 0 12px; letter-spacing: -0.01em; }
+  .section-subtitle { font-size: 14px; color: #7A7590; margin: 0 0 20px; font-style: italic; line-height: 1.6; }
+  .section-summary { font-size: 14px; color: #9A96A0; line-height: 1.8; margin: 0 0 20px; border-left: 3px solid; padding-left: 16px; }
+  .group-divider { height: 1px; background: #1E1E28; margin: 32px 0 48px; }
+  .group-wrap { margin-bottom: 48px; }
+
+  /* Timeline (agenda) */
+  .timeline { display: flex; flex-direction: column; }
+  .timeline-row { display: flex; gap: 0; }
+  .timeline-spine { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 20px; flex-shrink: 0; z-index: 1; }
+  .timeline-line { width: 1px; flex: 1; background: #222228; min-height: 24px; }
+  .timeline-content { flex: 1; padding-bottom: 28px; padding-top: 12px; }
+  .timeline-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+  .timeline-step-title { font-size: 16px; color: #F0EBE0; font-weight: 400; }
+  .timeline-duration { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+  .timeline-note { font-size: 13px; color: #7A7590; line-height: 1.7; margin: 0 0 12px; font-style: italic; }
+  .timeline-items { display: flex; flex-direction: column; gap: 6px; }
+  .timeline-item { display: flex; gap: 12px; background: #141418; border: 1px solid #1E1E28; border-radius: 8px; padding: 10px 14px; }
+  .timeline-item-label { font-size: 12px; font-weight: 400; min-width: 90px; flex-shrink: 0; padding-top: 1px; }
+  .timeline-item-detail { font-size: 13px; color: #9A9698; line-height: 1.5; }
+
+  /* Phrases */
+  .phrase-group { margin-bottom: 32px; }
+  .phrase-group-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; margin-bottom: 12px; }
+  .phrase-item { background: #141418; border: 1px solid #1E1E28; border-radius: 8px; padding: 11px 16px; font-size: 14px; color: #D8D4CC; font-style: italic; margin-bottom: 6px; }
+
+  /* ICF */
+  .icf-domain { margin-bottom: 36px; }
+  .icf-domain-label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; margin-bottom: 14px; }
+  .icf-comp { border: 1px solid #222228; border-radius: 10px; overflow: hidden; margin-bottom: 12px; background: #141418; transition: all 0.3s ease; }
+  .icf-comp.all-done { }
+  .icf-comp-header { padding: 14px 20px; border-bottom: 1px solid #1E1E28; }
+  .icf-comp-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .icf-comp-name { font-size: 15px; color: #F0EBE0; font-weight: 400; transition: color 0.3s; }
+  .icf-comp-count { font-size: 11px; color: #5A5870; white-space: nowrap; transition: color 0.3s; }
+  .icf-comp-def { font-size: 13px; color: #7A7590; font-style: italic; margin-top: 4px; line-height: 1.5; }
+  .icf-progress { height: 2px; background: #1E1E28; border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .icf-progress-bar { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+  .icf-subs { padding: 10px 20px 14px; }
+  .icf-sub { display: flex; align-items: flex-start; gap: 12px; padding: 7px 0; border-bottom: 1px solid #1A1A20; cursor: pointer; }
+  .icf-sub:last-child { border-bottom: none; }
+  .icf-checkbox { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #3A3A48; background: transparent; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 10px; line-height: 1; }
+  .icf-sub-text { font-size: 13px; color: #A8A4A0; line-height: 1.5; transition: color 0.2s; }
+  .icf-sub.checked .icf-sub-text { color: #5A5870; text-decoration: line-through; }
+  .icf-reset { background: none; border: 1px solid #2A2A35; border-radius: 6px; padding: 7px 14px; color: #6B6880; font-size: 12px; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
+
+  /* Questions slot machine */
+  .slot-machine { background: #141418; border: 1px solid #222228; border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .slot-display { min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 2rem 1.5rem; gap: 10px; }
+  .slot-cat { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #5A5870; }
+  .slot-q { font-size: 20px; font-weight: 400; color: #F0EBE0; text-align: center; line-height: 1.5; font-style: italic; transition: opacity 0.18s ease; max-width: 520px; }
+  .slot-q.fading { opacity: 0; }
+  .slot-controls { border-top: 1px solid #1E1E28; padding: 12px 20px; background: #0F0F13; display: flex; align-items: center; gap: 10px; }
+  .slot-select { flex: 1; background: #141418; border: 1px solid #2A2A35; border-radius: 6px; padding: 8px 10px; color: #C8C4BC; font-size: 13px; font-family: Georgia, serif; }
+  .slot-spin { background: rgba(168,218,220,0.13); border: 1px solid rgba(168,218,220,0.33); border-radius: 6px; padding: 8px 22px; color: #A8DADC; font-size: 14px; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
+  .add-q-box { background: #141418; border: 1px solid #222228; border-radius: 10px; padding: 16px 20px; }
+  .add-q-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #A8DADC; opacity: 0.8; margin-bottom: 12px; }
+  .add-q-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .add-q-select { background: #0F0F13; border: 1px solid #2A2A35; border-radius: 6px; padding: 9px 10px; color: #C8C4BC; font-size: 13px; font-family: Georgia, serif; min-width: 140px; }
+  .add-q-input { flex: 1; min-width: 180px; background: #0F0F13; border: 1px solid #2A2A35; border-radius: 6px; padding: 9px 14px; color: #E8E4DC; font-size: 13px; font-family: Georgia, serif; outline: none; }
+  .add-q-btn { background: rgba(168,218,220,0.13); border: 1px solid rgba(168,218,220,0.33); border-radius: 6px; padding: 9px 18px; color: #A8DADC; font-size: 13px; cursor: pointer; font-family: Georgia, serif; }
+  .custom-q-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .custom-q-item { display: flex; align-items: center; gap: 10px; background: #0F0F13; border-radius: 6px; padding: 8px 14px; border: 1px solid #1E1E28; }
+  .custom-q-cat { font-size: 11px; color: #A8DADC; opacity: 0.7; min-width: 90px; flex-shrink: 0; }
+  .custom-q-text { flex: 1; font-size: 13px; color: #C8C4BC; font-style: italic; }
+  .custom-q-remove { background: none; border: none; color: #4A4A58; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="header-eyebrow">Coach's Field Guide</div>
+    <h1>Co-Active Coaching</h1>
+    <p>Ready-to-use concepts for transformative conversations</p>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-inner" id="navInner"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<script>
+const tabs = [
+  { id: "model",     label: "The Model",           emoji: "🏛️", accent: "#52B788" },
+  { id: "skills",    label: "Skills Toolkit",      emoji: "🛠️", accent: "#F4A261" },
+  { id: "agenda",    label: "Session Agenda",      emoji: "📋", accent: "#94A3B8" },
+  { id: "phrases",   label: "Phrases",             emoji: "💬", accent: "#F9C74F" },
+  { id: "icf",       label: "ICF Competencies",    emoji: "✅", accent: "#7EB8F7" },
+  { id: "questions", label: "Powerful Questions",  emoji: "❓", accent: "#A8DADC" },
+];
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const modelGroups = [
+  {
+    label: "The Four Cornerstones", accent: "#52B788", color: "#2D6A4F",
+    summary: "The cornerstones are the foundational beliefs every Co-Active coach brings into the relationship — not techniques, but a worldview. Together they form the container that makes powerful coaching possible. They assert that clients are not broken and do not need fixing; that the whole person shows up in every conversation, not just the presenting issue; that the coach must follow the client's energy rather than their own agenda; and that the ultimate aim is not comfort or incremental progress, but genuine, lasting transformation. When a session feels off, returning to the cornerstones usually shows you why.",
+    items: [
+      { name: "People are Naturally Creative, Resourceful & Whole", description: "Clients already have the answers. Your job is to ask the questions that unlock what they already know. Nothing is broken — no one needs fixing.", whenToUse: "Always. This is the bedrock assumption. When you feel the urge to advise or fix, return here.", cues: ["Client seems stuck or helpless", "You feel pulled to give the answer", "Client underestimates themselves"], questions: ["What do you already know about this?", "If you trusted yourself completely here, what would you do?", "What part of you knows the answer?"] },
+      { name: "Focus on the Whole Person", description: "Coaching addresses the whole life, not just the presenting issue. Work and life are inseparable. What happens at home shows up at work, and vice versa.", whenToUse: "When the issue presented feels like the tip of an iceberg, or when the client seems to be compartmentalizing.", cues: ["Client only talks about one area of life", "Something feels off beneath the surface", "Pattern repeats across contexts"], questions: ["How is this showing up in other areas of your life?", "What does this remind you of?", "Who else is affected by this?"] },
+      { name: "Dance in This Moment", description: "The agenda belongs to the client — always. The most important moment is right now, wherever the client is. Follow the energy, not the plan.", whenToUse: "When you notice yourself sticking to a pre-set agenda while the client is pulling somewhere else.", cues: ["Client's energy shifts unexpectedly", "Session plan feels wrong", "Something more urgent just surfaced"], questions: ["What's most alive for you right now?", "I'm sensing something shifted — what's true?", "What do you most need from today?"] },
+      { name: "Evoke Transformation", description: "Coaching isn't about incremental improvement — it's about lasting change. You're committed to the client's highest potential, even when they aren't.", whenToUse: "When the client is settling for less, playing small, or resisting the edge of real growth.", cues: ["Client is avoiding the real issue", "Goals feel timid or habitual", "Breakthrough is near but client pulls back"], questions: ["What would it look like if you stopped playing it safe?", "What's the bigger game here?", "What would the best version of you do?"] },
+    ]
+  },
+  {
+    label: "The Three Core Principles", accent: "#C77DFF", color: "#7B2D8B",
+    summary: "Fulfillment, balance, and process are the underlying agenda of every client's life — whether they name it or not. These are not topics the coach introduces; they are the deeper current beneath every session. The presenting issue (career change, a difficult relationship, a decision to make) is the little 'a' agenda. Fulfillment, balance, and process are the Big 'A' — the terrain all of that lives in. A skilled Co-Active coach holds both simultaneously: working on what the client brings, while remaining attuned to the larger life questions those issues are pointing toward.",
+    items: [
+      { name: "Fulfillment", description: "A life of purpose, meaning, and deep satisfaction. Not happiness in the moment — but alignment with what truly matters. Fulfillment is intensely personal.", whenToUse: "When a client feels successful on paper but hollow inside. When they're chasing goals that don't light them up.", cues: ["'I have everything but I'm not happy'", "Client is disconnected from their values", "Motivation is low despite external success"], questions: ["What makes you feel most alive?", "When do you feel most like yourself?", "What would feel truly meaningful — not just impressive?"] },
+      { name: "Balance", description: "Not a fixed state to achieve — always dynamic, always moving. Coaching for balance means expanding a client's perspective and helping them make life-giving choices.", whenToUse: "When a client feels stretched thin, overwhelmed, or like they're perpetually running from something.", cues: ["Client feels out of control", "One area of life is consuming everything else", "Client is reactive rather than intentional"], questions: ["If you could zoom out and see your whole life right now, what do you notice?", "What's getting too much? What's getting too little?", "What choice would bring you more toward what you want?"] },
+      { name: "Process", description: "The journey matters as much as the destination. Learning and awareness along the way are the real outcomes. Meet the client exactly where they are.", whenToUse: "When a client is frustrated with pace, too focused on outcomes, or missing the growth happening in front of them.", cues: ["Client is impatient with themselves", "They're outcome-fixated and missing insight", "They're in a difficult stretch and can't see growth"], questions: ["What are you learning about yourself through this?", "What's becoming possible that wasn't possible before?", "What would it mean to trust the process here?"] },
+    ]
+  },
+  {
+    label: "The Five Contexts", accent: "#48CAE4", color: "#1A4A7A",
+    summary: "The five contexts are not skills a coach deploys one at a time — they are the atmosphere the coach maintains throughout every conversation. Think of them as five lights that shine on the client simultaneously: deep listening, expressed intuition, genuine curiosity, the dual push toward action and learning, and the coach's own self-management. When all five are present, the coaching has a particular quality of aliveness and contact. When one is absent — curiosity collapses into opinion, listening drops to Level 1, self-management fails — the conversation loses its power. Developing fluency in all five is the ongoing work of becoming a great coach.",
+    items: [
+      { name: "Listening (Levels 1, 2 & 3)", description: "Level 1: focused on your own inner experience — avoid this in session. Level 2: laser focus on the client — their words, tone, emotion. Level 3: global sensing of the whole field — energy, what's unspoken, what's in the room. Great coaching lives at Levels 2 and 3.", whenToUse: "Always — but notice which level you're at. Coaching requires moving out of Level 1.", cues: ["You're formulating your next question (L1)", "You're distracted by your own reaction (L1)", "Something in the field feels 'off' (L3 signal)"], questions: ["What I'm hearing underneath your words is… is that right?", "Your voice just changed — what's happening?", "There's something in the air here — what's not being said?"] },
+      { name: "Intuition", description: "Your inner wisdom as a coaching instrument. Not a hunch you keep to yourself — something you voice, lightly held. Often the most powerful gift you can offer. Trust it enough to name it.", whenToUse: "When something flickers that you can't quite explain. When what's said and what's felt don't match.", cues: ["You notice a feeling or image arise", "Something doesn't add up logically", "The client says one thing but their energy says another"], questions: ["I have a hunch — tell me if this lands: it sounds like part of you doesn't believe this is possible. True?", "I'm getting an image of someone trying to run in deep water. Does that resonate?", "Something tells me this isn't really about [X]. What's really going on?"] },
+      { name: "Curiosity", description: "Genuine, open, non-judgmental wonder about the client's world. Not interrogation — exploration. Curiosity creates space and safety. The coach's job is to be fascinated, not to evaluate.", whenToUse: "Especially when you feel yourself moving toward judgment, advice-giving, or problem-solving.", cues: ["You want to challenge or correct the client", "You already think you know what's going on", "The client seems to be avoiding something"], questions: ["Tell me more about that.", "What's that like for you?", "What do you make of that?", "I'm curious — what would it take for that to change?"] },
+      { name: "Forward the Action & Deepen the Learning", description: "Two inseparable movements: action (nothing changes without it) and learning (awareness makes action sustainable). Always both — not one or the other.", whenToUse: "At natural transition points — when insight has landed, when a session is nearing its end, when a client is circling without moving.", cues: ["Client has had an insight but no commitment", "Client is busy doing but not reflecting", "Session is winding down"], questions: ["What's one thing you'll do before we speak again?", "What's the learning you want to take with you from today?", "What would make this week count?"] },
+      { name: "Self-Management", description: "The coach's ability to set aside their own opinions, judgments, and reactions to stay fully present with the client. You are the instrument — keep it clean. Your stuff doesn't belong in the session.", whenToUse: "Whenever you notice a strong reaction — agreement, disagreement, irritation, excitement. Notice it, set it aside, return to the client.", cues: ["You have a strong opinion about what the client should do", "You feel frustrated or anxious in session", "You want to share your own experience"], questions: ["(Internal check: Is this about me or about them?)", "(Ask yourself: What does my client need right now — not what do I think?)"] },
+    ]
+  }
+];
+
+const skillsItems = [
+  { name: "Holding the Client's Agenda", description: "The client's agenda — what they want to accomplish in this session — belongs to them, not the coach. The coach's job is to stay anchored to what the client said they came for, and return to it if the session drifts. Distinct from the Big A (life agenda): this is the little 'a' — the specific focus the client brings today.", whenToUse: "At the start of every session to establish it, and throughout when the conversation drifts or the coach feels pulled to take over.", cues: ["You're steering the session toward what you think matters", "The topic has shifted and it's unclear who led that", "Client seems unsure what they want from today"], questions: ["What do you want to focus on today?", "What would make this session valuable for you?", "We've moved into [topic] — is this still where you want to be?", "What do you most want to leave with today?"] },
+  { name: "Intuiting", description: "Voicing your inner sense — a feeling, image, or knowing that arises in you during the session — directly to the client, lightly held and without attachment. Intuition is not a hunch you keep to yourself; it is a coaching instrument. The key is to name it, offer it as a possibility, and let the client decide if it lands. You are not making a claim — you are shining a light. If it misses, that's fine; even a 'no, that's not it' often moves the client somewhere useful. The skill is in trusting the flicker enough to speak it.", whenToUse: "When something arises in you that doesn't fit the logic of what's being said — a feeling, image, word, or sense — and you can't quite explain it but it feels significant.", cues: ["What's said and what's felt don't match", "A word, image, or physical sensation arises in you", "You have a sense the real issue hasn't been named yet", "The client seems to be circling without landing"], questions: ["I have a sense that ____ — does that land?", "I might be off, but something tells me this is really about ____", "I'm getting an image of ____ — does that resonate at all?", "Can I share something? I notice ____ in myself as you speak — I wonder if that's connected to anything for you."] },
+  { name: "Articulating What's Going On (AWGO)", description: "Mirroring back to the client what you see or hear them doing — concisely. Repeating or paraphrasing their experience back to them. Often triggers a new thought, perspective, or realization in the client.", whenToUse: "When the client seems unclear about their own pattern, or when you want to deepen awareness without asking a question.", cues: ["Client is in a story but seems unaware of the theme", "You're noticing a pattern they haven't named", "The session needs a moment of reflection"], questions: ["'You're working really hard at this and it's frustrating that others aren't matching your effort.'", "'What I hear is that you keep choosing safety over what you actually want.'", "'You light up when you talk about X, and go flat when you talk about Y.'"] },
+  { name: "Clarifying", description: "When a client can't articulate clearly what they want or where they're going, the coach helps clarify their experience. A blend of questioning, reframing, and AWGO. Especially useful early in a relationship or when goals are fuzzy.", whenToUse: "When there's vagueness, confusion, or uncertainty about what the client actually wants.", cues: ["Client says 'I just want to be happier'", "Goals feel abstract or contradictory", "You're not sure what the real issue is"], questions: ["When you say [word], what do you mean exactly?", "Can you say more about what that would look like?", "What would need to be true for you to feel like this was resolved?"] },
+  { name: "Asking Permission", description: "Giving the client control before entering sensitive or bold territory. Enables access to intimate or uncomfortable areas. Also allows the client to decline, which preserves trust and safety.", whenToUse: "Before delivering hard truth, naming a pattern, or venturing into new territory.", cues: ["You're about to say something direct or potentially confronting", "The topic is sensitive", "You want to use intuition or give feedback"], questions: ["Can I tell you what I'm noticing?", "Is it okay if I challenge you here?", "Can I share the hard truth I'm seeing?", "Is it alright if I coach you on this?"] },
+  { name: "Intruding / Interrupting", description: "The coach steps in to redirect, interrupt, or 'wake up' a client who is going on and on, avoiding, or underestimating themselves. Done with care and permission — but done.", whenToUse: "When a long story is obscuring what matters, when the client is spinning, or when something more important needs attention.", cues: ["Client has been talking for a while without landing anywhere", "Session energy is flat or circular", "Client keeps minimizing something significant"], questions: ["I'm going to stop you there — something important just came up.", "I want to interrupt — I noticed something when you said [X].", "Can I cut in? I'm hearing something underneath this story."] },
+  { name: "Championing", description: "Standing up for the client when they doubt themselves. You hold a bigger vision of who they are and what they're capable of — especially when they can't see it themselves. Different from cheerleading; it's grounded in real knowing.", whenToUse: "When the client is in self-doubt, in the valley, or retreating from their potential.", cues: ["Client says 'I can't', 'I'm not good at this', 'I'm not sure I can do it'", "They're underestimating what they just achieved", "Energy drops when talking about their goal"], questions: ["I want to champion you here — I see someone who [specific quality].", "I know you can do this. Here's what I see: [evidence].", "The person I'm talking to right now is someone who [capability]. Do you see that?"] },
+  { name: "Challenging", description: "A request that stretches the client way beyond their self-imposed limits. Not hostile — an invitation to a bigger game. A real challenge includes a specific action, conditions of satisfaction, and a timeframe. Client responds with yes, no, or a counteroffer.", whenToUse: "When the client is playing it safe, setting goals that are too small, or needs to be shaken out of their comfort zone.", cues: ["Goals feel timid relative to what you know of them", "Client keeps making incremental plans", "There's energy waiting to be unleashed"], questions: ["I want to challenge you — are you open to it?", "What if the goal wasn't 2 but 10?", "What would you do if you doubled the commitment?"] },
+  { name: "Reframing", description: "Offering the client a different way to see the same situation. The facts don't change — but the interpretation does. Opens new possibilities and resources.", whenToUse: "When the client is stuck in one story or one perspective that's limiting them.", cues: ["Client sees only one way to interpret something", "They're describing a failure when growth actually occurred", "They're treating a constraint as permanent"], questions: ["What if this isn't a failure — what if it's data?", "What would it look like if this was happening for you, not to you?", "How might someone else see this same situation?"] },
+  { name: "Meta-View", description: "Zooming out to the big picture — reconnecting the client to their larger vision, values, and life direction. Steps back from the detail of the moment to see the whole landscape.", whenToUse: "When the client is lost in the weeds, overwhelmed by details, or has lost sight of why any of this matters.", cues: ["Client is caught in task-level stress", "They've forgotten their larger purpose", "The session is too tactical"], questions: ["Let's zoom way out — what's really going on in your life right now?", "Remind me: what's the bigger thing you're building toward?", "If you could see your life from 10,000 feet, what would you notice?"] },
+  { name: "Clearing", description: "When a client is preoccupied with something that's blocking their presence, the coach actively listens while they vent — not to solve, but to help them clear the static so real coaching can happen. Also applies to the coach: clear your own stuff before a session.", whenToUse: "When a client arrives distracted, emotionally flooded, or unable to settle into the session topic.", cues: ["Client is clearly preoccupied with something else", "They keep coming back to a grievance or worry", "Energy is blocked before you've even started"], questions: ["It sounds like there's something in the way — do you need to say it out loud first?", "What do you need to get off your chest before we begin?", "Let's clear the air — what's sitting on you right now?"] },
+  { name: "Acknowledgment", description: "Naming who the client had to be — not just what they did. Goes to the Self: their courage, growth, resilience, or character. Different from praise — it's a deep reflection of what you see in them.", whenToUse: "After a breakthrough, after something courageous, when a client downplays their own growth.", cues: ["Client minimizes something significant", "A breakthrough just happened", "Client is being hard on themselves despite real progress"], questions: ["I want to acknowledge the courage it took to [specific action].", "Do you realize what you just did? That was [quality].", "I see someone who [deep character quality]. I want to name that."] },
+  { name: "Accountability", description: "Holding the client to what they said they would do — without blame or judgment. Three questions anchor it: What will you do? By when? How will I know?", whenToUse: "At the end of sessions and at the start of follow-up sessions.", cues: ["Client made a commitment last session", "Client frequently doesn't follow through", "Goals are set but never land in action"], questions: ["What exactly are you committing to?", "By when will this be done?", "How will we know you've done it?", "What happened to the commitment from last time?"] },
+  { name: "Brainstorming", description: "Coach and client generate ideas together — freely, without judgment or attachment. Some ideas may be outrageous. The goal is expanding possibility, not finding the right answer.", whenToUse: "When the client feels boxed in, needs new options, or is stuck in either/or thinking.", cues: ["Client sees only 1-2 options", "They're overthinking and under-creating", "Energy is low because the path feels narrow"], questions: ["Let's brainstorm — nothing is off the table. What are all the possibilities?", "What's an idea so crazy it almost makes sense?", "If there were no constraints, what would you consider?"] },
+  { name: "Metaphor", description: "Using a verbal image to illustrate a situation or feeling. Metaphors bypass analytical resistance and connect to something felt. They can unlock insight faster than direct language.", whenToUse: "When the client is in their head, when you want to reflect back their experience in a new way, or when a concept needs to land emotionally.", cues: ["Client is intellectualizing", "You have a vivid sense of their situation", "Logic-based conversation isn't moving them"], questions: ["It sounds like you're trying to steer a ship in a storm — what would it mean to drop anchor for a moment?", "I'm getting the image of someone running on a treadmill — does that resonate?", "What metaphor would you use for where you are right now?"] },
+  { name: "Requesting", description: "Inviting the client to take a specific action — bold enough to stretch, offered as a genuine request they can accept, decline, or counteroffer. Not an assignment. Respects client agency.", whenToUse: "When insight needs to convert into movement, or when a client needs accountability momentum.", cues: ["Clarity is there but no action is forming", "Same issue recurring without change", "Client needs a nudge into the uncomfortable"], questions: ["I'd like to make a request — would you be willing to [specific action] by [date]?", "What would feel like a real stretch this week?", "What could you commit to that would make you a little nervous?"] },
+  { name: "Silence & Pauses", description: "Not rushing to fill space. Allowing a client to absorb a powerful thought or feeling. Silence after a powerful question or breakthrough is coaching — it's not dead air.", whenToUse: "After a powerful question, after a breakthrough, when the client seems on the edge of something real.", cues: ["Client pauses meaningfully", "Something just landed", "You feel the urge to fill the silence — resist it"], questions: ["(Say nothing. Hold the space.)", "Take your time.", "Stay with that a moment."] },
+];
+
+const agendaSteps = [
+  { title: "Building Connection & Rapport", duration: "5 min", notes: "Arrive before the client. Be fully present before the call begins — clear yourself of whatever came before. This is not small talk; it's the foundation of trust. Let the client settle in.", items: [] },
+  { title: "Housekeeping", duration: "5 min", notes: "Cover the structural agreements that make the coaching container safe and clear. Do this consistently at the start of every new engagement, and revisit if anything changes.", items: [{ label: "Recording", detail: "Ask permission to record. Explain who may have access and why." }, { label: "Confidentiality", detail: "Everything stays confidential, with exceptions: intent to harm self or others. If pursuing credentialization, a mentor coach may also review recordings and is equally bound by confidentiality." }, { label: "Clarify the Profession", detail: "Therapy is past-focused, diagnostic, and curative. Consulting is expert-led — the consultant has the answers. Coaching is forward-focused, non-directive, and partnership-based. You ask powerful questions; the client has the answers." }] },
+  { title: "Coaching Request", duration: "", notes: "Establish the client's agenda for this session — the little 'a'. Ask one clean opening question and let them take you where they need to go. Don't rush this; what they say first is rarely the whole picture.", items: [{ label: "Focus", detail: "What would you like to focus on today?" }, { label: "Desired outcome", detail: "What would you like to take away from our time together?" }, { label: "Success measure", detail: "How will you know if we've achieved what you came for?" }] },
+  { title: "Coaching", duration: "Core of the session", notes: "Follow the client's energy. Use the five contexts — listen deeply, stay curious, trust your intuition, move toward action and learning, and manage yourself. The agenda belongs to the client; your job is to hold the space and go where it matters most.", items: [] },
+  { title: "Reviewing the Actions", duration: "10 min", notes: "Don't let insight evaporate. Convert awareness into commitment. Be specific — vague intentions don't create change. Three anchors: What? By when? How will you know?", items: [{ label: "Next steps", detail: "Based on what we've discussed, what are your next steps?" }, { label: "Accountability", detail: "What actions will you take, and by when?" }, { label: "Support", detail: "Who do you have to support you? How will you hold yourself accountable?" }] },
+  { title: "Closing & Acknowledgments", duration: "5 min", notes: "End with intention. Give the client a moment to name what they're taking with them, and acknowledge who they showed up as in this session — not what they did, but who they were.", items: [{ label: "Completion", detail: "What do you need to say to feel complete with this session?" }, { label: "Acknowledgment", detail: "What would you like to be acknowledged for?" }] },
+];
+
+const phraseGroups = [
+  { label: "Reflecting & Tracking", phrases: ["What I heard was ____", "It sounds like ____", "I'm hearing ____ — is that right?", "I heard you say ____", "What I'm noticing is ____", "There's something in what you just said — let me reflect it back: ____", "Earlier you said ____, and now I'm hearing ____", "I noticed ____"] },
+  { label: "Exploring & Opening Space", phrases: ["Tell me more about ____", "What does ____ mean to you?", "What's coming up for you?", "What's underneath ____", "I'm curious about ____", "I want to understand ____ better", "I could imagine ____"] },
+  { label: "Intuition & Checking In", phrases: ["I have a sense that ____ — does that land?", "I might be off, but I'm getting the feeling that ____", "Something tells me this is really about ____"] },
+  { label: "Forwarding Action", phrases: ["It sounds like the next step is ____", "What I'm hearing you commit to is ____", "The thing that seems to be stopping you is ____", "By when will you ____"] },
+  { label: "Acknowledging & Championing", phrases: ["What I see in you is ____", "I want to acknowledge ____ about you", "The courage it took to ____ is worth naming", "Do you realize what you just did? ____"] },
+  { label: "Closing", phrases: ["I see we have ____ time left — is there anything else you want to say?", "What I noticed about you today was ____", "What I'm taking away from this conversation is ____"] },
+];
+
+const icfDomains = [
+  { domain: "A. Foundation", accent: "#52B788", color: "#2E4A3E", competencies: [
+    { name: "1. Demonstrates Ethical Practice", definition: "Understands and consistently applies coaching ethics and standards of coaching.", subs: ["Demonstrates personal integrity and honesty with clients and stakeholders", "Is sensitive to clients' identity, environment, experiences, values and beliefs", "Uses language appropriate and respectful to all parties", "Abides by the ICF Code of Ethics and upholds ICF Core Values", "Maintains confidentiality per stakeholder agreements and pertinent laws", "Maintains distinctions between coaching, consulting, psychotherapy and other professions", "Refers clients to other support professionals as appropriate"] },
+    { name: "2. Embodies a Coaching Mindset", definition: "Engages in ongoing personal and professional development. Maintains a mindset that is open, curious, flexible and client-centered.", subs: ["Acknowledges that clients are responsible for their own choices", "Engages in ongoing learning, including awareness of current best practices and technology", "Develops an ongoing reflective practice to enhance coaching", "Remains aware of and open to the influence of biases, context and culture", "Uses awareness of self and intuition to benefit clients", "Develops and maintains the ability to manage one's emotions", "Maintains emotional, physical, and mental well-being throughout each session", "Seeks help from outside sources when necessary", "Nurtures openness and curiosity in oneself, the client, and the coaching process", "Remains aware of the influence of one's thoughts and behaviors on the client"] },
+  ]},
+  { domain: "B. Co-Creating the Relationship", accent: "#C77DFF", color: "#2B2040", competencies: [
+    { name: "3. Establishes and Maintains Agreements", definition: "Partners with the client and relevant stakeholders to create clear agreements about the coaching relationship, process, plans and goals.", subs: ["Clearly defines what coaching is and is not for potential clients and stakeholders", "Reaches agreement on what is appropriate, what is being offered, and responsibilities of all parties", "Reaches agreement on logistics, fees, scheduling, duration, termination and confidentiality", "Partners with client and stakeholders to establish an overall coaching plan and goals", "Partners with client to determine client-coach compatibility", "Partners with client to identify or reconfirm what they want to accomplish in the session", "Partners with client to define what needs to be addressed to achieve the session goal", "Partners with client to define or reconfirm measures of success", "Partners with client to manage the time and focus of the session", "Continues coaching in the direction of the client's desired outcome unless client indicates otherwise", "Partners with client to close the coaching relationship respectfully", "Revisits the coaching agreement when necessary to ensure it meets client's needs"] },
+    { name: "4. Cultivates Trust and Safety", definition: "Partners with the client to create a safe, supportive environment that allows the client to share freely. Maintains mutual respect and trust.", subs: ["Seeks to understand the client within their context — identity, environment, values and beliefs", "Demonstrates respect for the client's identity, perceptions, style and language", "Acknowledges and respects the client's unique talents, insights and work", "Shows support, empathy and concern for the client", "Acknowledges and supports the client's expression of feelings, perceptions and beliefs", "Demonstrates openness and transparency to build trust with the client"] },
+    { name: "5. Maintains Presence", definition: "Is fully conscious and present with the client, employing a style that is open, flexible, grounded and confident.", subs: ["Remains focused, observant, empathetic and responsive to the client", "Demonstrates curiosity during the coaching process", "Remains aware of what is emerging for self and client in the present moment", "Manages one's emotions to stay present with the client", "Demonstrates confidence in working with strong client emotions", "Is comfortable working in a space of not knowing", "Creates or allows space for silence, pause or reflection"] },
+  ]},
+  { domain: "C. Communicating Effectively", accent: "#7EB8F7", color: "#0D2137", competencies: [
+    { name: "6. Listens Actively", definition: "Focuses on what the client is and is not saying to fully understand what is being communicated in the context of the client systems and to support client self-expression.", subs: ["Considers client's context, identity, environment and values to enhance understanding", "Reflects or summarizes what the client is communicating to ensure clarity", "Recognizes and inquires when there is more to what the client is communicating", "Notices, acknowledges and explores the client's emotions, energy shifts and non-verbal cues", "Integrates the client's words, tone of voice and body language to determine full meaning", "Notices trends in client's behaviors and emotions across sessions to discern themes and patterns"] },
+    { name: "7. Evokes Awareness", definition: "Facilitates client insight and learning by using tools and techniques such as powerful questioning, silence, metaphor or analogy.", subs: ["Considers client experience when deciding what might be most useful", "Challenges the client as a way to evoke awareness or insight", "Asks questions about the client's way of thinking, values, needs, wants and beliefs", "Asks questions that help the client explore beyond current thinking", "Invites the client to share more about their experience in the moment", "Notices what is working to enhance client progress", "Adjusts the coaching approach in response to the client's needs", "Helps the client identify factors that influence current and future patterns", "Invites the client to generate ideas about how they can move forward", "Supports the client in reframing perspectives", "Shares observations, knowledge and feelings without attachment to create new insights"] },
+  ]},
+  { domain: "D. Cultivating Learning and Growth", accent: "#F4A261", color: "#2A1A0A", competencies: [
+    { name: "8. Facilitates Client Growth", definition: "Partners with the client to transform learning and insight into action. Promotes client autonomy in the coaching process.", subs: ["Works with client to integrate new awareness and learning into their worldview and behaviors", "Partners with client to design goals, actions and accountability measures", "Acknowledges and supports client autonomy in the design of goals and methods of accountability", "Supports the client in identifying potential results or learning from identified action steps", "Invites the client to consider how to move forward, including resources and potential barriers", "Partners with client to summarize learning and insight within or between sessions", "Partners with client to integrate learning and sustain progress throughout the engagement", "Acknowledges the client's progress and successes", "Partners with the client to close the session"] },
+  ]},
+];
+
+const baseCategories = ["Anticipation","Assessment","Clarification","Elaboration","Evaluation","Example","Exploration","For Instance","Fun as Perspective","History","Implementation","Integration","Learning","Opening","Options","Outcomes","Perspective","Planning","Predictions","Resources","Substance","Summary","Taking Action"];
+const baseQuestions = [
+  {c:"Anticipation",q:"What is possible?"},{c:"Anticipation",q:"What if it works out exactly as you want it to?"},{c:"Anticipation",q:"What is the dream?"},{c:"Anticipation",q:"What is exciting to you about this?"},{c:"Anticipation",q:"What is the urge?"},{c:"Anticipation",q:"What does your intuition tell you?"},
+  {c:"Assessment",q:"What do you make of it?"},{c:"Assessment",q:"What do you think is best?"},{c:"Assessment",q:"How does it look to you?"},{c:"Assessment",q:"How do you feel about it?"},{c:"Assessment",q:"What resonates for you?"},
+  {c:"Clarification",q:"What do you mean?"},{c:"Clarification",q:"What does it feel like?"},{c:"Clarification",q:"What is the part that is not yet clear?"},{c:"Clarification",q:"Can you say more?"},{c:"Clarification",q:"What do you want?"},
+  {c:"Elaboration",q:"Can you tell me more?"},{c:"Elaboration",q:"What else?"},{c:"Elaboration",q:"What other ideas, thoughts, or feelings do you have about it?"},
+  {c:"Evaluation",q:"What is the opportunity here?"},{c:"Evaluation",q:"What is the challenge?"},{c:"Evaluation",q:"How does this fit with your plans, way of life, or values?"},{c:"Evaluation",q:"What do you think that means?"},{c:"Evaluation",q:"What is your assessment?"},
+  {c:"Example",q:"What is an example?"},{c:"Example",q:"For instance?"},{c:"Example",q:"Like what? Such as?"},{c:"Example",q:"What would it look like?"},
+  {c:"Exploration",q:"What is here that you want to explore?"},{c:"Exploration",q:"What part of the situation have you not yet explored?"},{c:"Exploration",q:"What other angles can you think of?"},{c:"Exploration",q:"What is just one more possibility?"},{c:"Exploration",q:"What are your other options?"},
+  {c:"For Instance",q:"If you could do it over again, what would you do differently?"},{c:"For Instance",q:"If it had been you, what would you have done?"},{c:"For Instance",q:"How else could a person handle this?"},{c:"For Instance",q:"If you could do anything you wanted, what would you do?"},
+  {c:"Fun as Perspective",q:"What does fun mean to you?"},{c:"Fun as Perspective",q:"What was humorous about the situation?"},{c:"Fun as Perspective",q:"How can you make this more fun?"},{c:"Fun as Perspective",q:"How do you want it to be?"},{c:"Fun as Perspective",q:"If you were to teach people how to have fun, what would you say?"},
+  {c:"History",q:"What caused it?"},{c:"History",q:"What led up to it?"},{c:"History",q:"What have you tried so far?"},{c:"History",q:"What do you make of it all?"},
+  {c:"Implementation",q:"What is the action plan?"},{c:"Implementation",q:"What will you have to do to get the job done?"},{c:"Implementation",q:"What support do you need to accomplish it?"},{c:"Implementation",q:"What will you do?"},{c:"Implementation",q:"When will you do it?"},
+  {c:"Integration",q:"What will you take away from this?"},{c:"Integration",q:"How do you explain this to yourself?"},{c:"Integration",q:"What was the lesson?"},{c:"Integration",q:"How can you make sure you remember what you have learned?"},
+  {c:"Learning",q:"If your life depended on taking action, what would you do?"},{c:"Learning",q:"If you had free choice in the matter, what would you do?"},{c:"Learning",q:"If the same thing came up again, what would you do?"},{c:"Learning",q:"If we could wipe the slate clean, what would you do?"},{c:"Learning",q:"If you had it to do over again, what would you do?"},
+  {c:"Opening",q:"What's occurred since we last spoke?"},{c:"Opening",q:"What would you like to talk about?"},{c:"Opening",q:"What's new, the latest, the update?"},{c:"Opening",q:"How was your week?"},{c:"Opening",q:"Where are you right now?"},
+  {c:"Options",q:"What are the possibilities?"},{c:"Options",q:"If you had your choice, what would you do?"},{c:"Options",q:"What are possible solutions?"},{c:"Options",q:"What will happen if you do, and what will happen if you don't?"},{c:"Options",q:"What options can you create?"},
+  {c:"Outcomes",q:"What do you want?"},{c:"Outcomes",q:"What is your desired outcome?"},{c:"Outcomes",q:"If you got it, what would you have?"},{c:"Outcomes",q:"How will you know you have reached it?"},{c:"Outcomes",q:"What would it look like?"},
+  {c:"Perspective",q:"When you are 95 years old, what will you want to say about your life?"},{c:"Perspective",q:"What will you think about this five years from now?"},{c:"Perspective",q:"How does this relate to your life purpose?"},{c:"Perspective",q:"In the bigger scheme of things, how important is this?"},
+  {c:"Planning",q:"What do you plan to do about it?"},{c:"Planning",q:"What is your game plan?"},{c:"Planning",q:"How do you suppose you improve the situation?"},{c:"Planning",q:"Now what?"},
+  {c:"Predictions",q:"How do you suppose it will all work out?"},{c:"Predictions",q:"What will that get you?"},{c:"Predictions",q:"Where will this lead?"},{c:"Predictions",q:"What are the chances of success?"},{c:"Predictions",q:"What is your prediction?"},
+  {c:"Resources",q:"What resources do you need to help you decide?"},{c:"Resources",q:"What do you know about it now?"},{c:"Resources",q:"How do you suppose you can find out more about it?"},{c:"Resources",q:"What resources are available to you?"},
+  {c:"Substance",q:"What seems to be the trouble?"},{c:"Substance",q:"What seems to be the main obstacle?"},{c:"Substance",q:"What is stopping you?"},{c:"Substance",q:"What concerns you the most?"},{c:"Substance",q:"What do you want?"},
+  {c:"Summary",q:"What is your conclusion?"},{c:"Summary",q:"How is this working?"},{c:"Summary",q:"How would you describe this?"},{c:"Summary",q:"What do you think this all amounts to?"},{c:"Summary",q:"How would you summarize this?"},
+  {c:"Taking Action",q:"What action will you take? And after that?"},{c:"Taking Action",q:"What will you do? When?"},{c:"Taking Action",q:"Is this a time for action? What action?"},{c:"Taking Action",q:"Where do you go from here?"},{c:"Taking Action",q:"What are your next steps?"},{c:"Taking Action",q:"By what date or time will you complete these steps?"},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeTab = "model";
+let expandedCard = null;
+let icfChecked = {};
+let customQs = [];
+let spinCat = "all";
+let currentQ = null;
+let qFading = false;
+let lastQIdx = -1;
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  renderNav();
+  renderContent();
+}
+
+function renderNav() {
+  const nav = document.getElementById('navInner');
+  nav.innerHTML = tabs.map(t => `
+    <button class="nav-btn ${activeTab === t.id ? 'active' : ''}" style="--accent:${t.accent}" onclick="switchTab('${t.id}')">
+      ${t.emoji} ${t.label}
+    </button>
+  `).join('');
+}
+
+function switchTab(id) {
+  activeTab = id;
+  expandedCard = null;
+  if (id !== 'icf') icfChecked = {};
+  render();
+}
+
+function renderContent() {
+  const el = document.getElementById('content');
+  if (activeTab === 'model') el.innerHTML = renderModel();
+  else if (activeTab === 'icf') el.innerHTML = renderICF();
+  else if (activeTab === 'skills') el.innerHTML = renderSkills();
+  else if (activeTab === 'agenda') el.innerHTML = renderAgenda();
+  else if (activeTab === 'questions') el.innerHTML = renderQuestions();
+  else if (activeTab === 'phrases') el.innerHTML = renderPhrases();
+}
+
+function cardHTML(item, idx, accent, color) {
+  const isOpen = expandedCard === idx;
+  return `
+    <div class="card ${isOpen ? 'open' : ''}" onclick="toggleCard(${idx})">
+      <div class="card-header">
+        <div style="flex:1">
+          <div class="card-title">${item.name}</div>
+          ${!isOpen ? `<div class="card-preview">${item.description}</div>` : ''}
+        </div>
+        <div class="card-arrow" style="color:${accent}">▾</div>
+      </div>
+      ${isOpen ? `
+      <div class="card-body">
+        <p class="card-desc">${item.description}</p>
+        <div class="card-grid">
+          <div class="card-box">
+            <div class="card-box-label" style="color:${accent}">When you see this</div>
+            ${item.cues.map(c => `<div class="card-box-item" style="--c:${accent}">${c}</div>`).join('')}
+          </div>
+          <div class="card-box">
+            <div class="card-box-label" style="color:${accent}">Go-to language</div>
+            ${item.questions.map(q => `<div class="card-box-q" style="color:#C8C4BC"><!-- arrow -->"${q}"</div>`).join('')}
+          </div>
+        </div>
+        ${item.whenToUse ? `
+        <div class="card-when" style="border-color:${accent};background:${color}22">
+          <span class="card-when-label" style="color:${accent}">Use when: </span>
+          <span class="card-when-text">${item.whenToUse}</span>
+        </div>` : ''}
+      </div>` : ''}
+    </div>`;
+}
+
+function toggleCard(idx) {
+  expandedCard = expandedCard === idx ? null : idx;
+  renderContent();
+}
+
+function renderModel() {
+  return modelGroups.map((g, gi) => `
+    <div class="group-wrap">
+      <h2 class="section-title" style="color:${g.accent}">${g.label}</h2>
+      <p class="section-summary" style="border-color:${g.accent}33">${g.summary}</p>
+      ${g.items.map((item, i) => cardHTML(item, gi * 100 + i, g.accent, g.color)).join('')}
+    </div>
+    ${gi < modelGroups.length - 1 ? '<div class="group-divider"></div>' : ''}
+  `).join('');
+}
+
+function renderSkills() {
+  return `
+    <h2 class="section-title" style="color:#F4A261">The Skills Toolkit</h2>
+    <p class="section-subtitle">Concrete techniques from the Co-Active skills list — what each is, when to use it, and how</p>
+    ${skillsItems.map((item, i) => cardHTML(item, i, '#F4A261', '#7A3B1E')).join('')}
+  `;
+}
+
+function renderAgenda() {
+  const accent = '#94A3B8';
+  return `
+    <h2 class="section-title" style="color:${accent}">Sample Session Agenda</h2>
+    <p class="section-subtitle">A structural guide — not a script. Follow the client, not the clock.</p>
+    <div class="timeline">
+      ${agendaSteps.map((step, i) => `
+        <div class="timeline-row">
+          <div class="timeline-spine">
+            <div class="timeline-dot" style="background:${accent}"></div>
+            ${i < agendaSteps.length - 1 ? '<div class="timeline-line"></div>' : ''}
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-head">
+              <span class="timeline-step-title">${step.title}</span>
+              ${step.duration ? `<span class="timeline-duration" style="color:${accent}">${step.duration}</span>` : ''}
+            </div>
+            <p class="timeline-note">${step.notes}</p>
+            ${step.items.length ? `
+            <div class="timeline-items">
+              ${step.items.map(it => `
+                <div class="timeline-item">
+                  <span class="timeline-item-label" style="color:${accent}">${it.label}</span>
+                  <span class="timeline-item-detail">${it.detail}</span>
+                </div>`).join('')}
+            </div>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPhrases() {
+  const accent = '#F9C74F';
+  return `
+    <h2 class="section-title" style="color:${accent}">Sample Language</h2>
+    <p class="section-subtitle">Fill-in-the-blank phrases to keep close. Not scripts — starting points.</p>
+    ${phraseGroups.map(g => `
+      <div class="phrase-group">
+        <div class="phrase-group-label" style="color:${accent}">${g.label}</div>
+        ${g.phrases.map(p => `<div class="phrase-item">"${p}"</div>`).join('')}
+      </div>`).join('')}`;
+}
+
+function renderICF() {
+  const allCats = icfDomains.flatMap(d => d.competencies);
+  const total = allCats.reduce((s, c) => s + c.subs.length, 0);
+  const totalChecked = Object.values(icfChecked).filter(Boolean).length;
+  return `
+    <div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 class="section-title" style="color:#7EB8F7">2025 ICF Core Competencies</h2>
+        <p class="section-subtitle" style="margin-bottom:0">Use as a post-session self-check. Checkboxes reset when you switch tabs.</p>
+      </div>
+      <button class="icf-reset" onclick="resetICF()">Reset all (${totalChecked}/${total})</button>
+    </div>
+    ${icfDomains.map((domain, di) => `
+      <div class="icf-domain">
+        <div class="icf-domain-label" style="color:${domain.accent}">${domain.domain}</div>
+        ${domain.competencies.map((comp, ci) => {
+          const total = comp.subs.length;
+          const done = comp.subs.filter((_, si) => icfChecked[`${di}-${ci}-${si}`]).length;
+          const allDone = done === total;
+          return `
+          <div class="icf-comp ${allDone ? 'all-done' : ''}" style="${allDone ? `background:${domain.color}88;border-color:${domain.accent}44` : ''}">
+            <div class="icf-comp-header">
+              <div class="icf-comp-top">
+                <div class="icf-comp-name" style="${allDone ? `color:${domain.accent}` : ''}">${comp.name}</div>
+                <div class="icf-comp-count" style="${allDone ? `color:${domain.accent}` : ''}">${done}/${total}</div>
+              </div>
+              <div class="icf-comp-def">${comp.definition}</div>
+              <div class="icf-progress">
+                <div class="icf-progress-bar" style="width:${Math.round((done/total)*100)}%;background:${domain.accent}"></div>
+              </div>
+            </div>
+            <div class="icf-subs">
+              ${comp.subs.map((sub, si) => {
+                const key = `${di}-${ci}-${si}`;
+                const checked = !!icfChecked[key];
+                return `
+                <div class="icf-sub ${checked ? 'checked' : ''}" onclick="toggleICF('${key}')">
+                  <div class="icf-checkbox" style="border-color:${checked ? domain.accent : '#3A3A48'};background:${checked ? domain.accent+'33' : 'transparent'};color:${domain.accent}">
+                    ${checked ? '✓' : ''}
+                  </div>
+                  <div class="icf-sub-text">${sub}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`).join('')}`;
+}
+
+function toggleICF(key) {
+  icfChecked[key] = !icfChecked[key];
+  renderContent();
+}
+
+function resetICF() {
+  icfChecked = {};
+  renderContent();
+}
+
+function renderQuestions() {
+  const accent = '#A8DADC';
+  const allQs = [...baseQuestions, ...customQs];
+  const allCats = [...baseCategories, ...customQs.map(q => q.c).filter(c => !baseCategories.includes(c)).filter((c, i, a) => a.indexOf(c) === i)];
+  const pool = spinCat === 'all' ? allQs : allQs.filter(q => q.c === spinCat);
+
+  return `
+    <div style="margin-bottom:24px">
+      <h2 class="section-title" style="color:${accent}">Powerful Questions</h2>
+      <p class="section-subtitle" style="margin-bottom:0">Provocative queries that invite clarity, action, and discovery.</p>
+    </div>
+
+    <div class="slot-machine">
+      <div class="slot-display">
+        <div class="slot-cat" id="slotCat">${currentQ ? currentQ.c : '—'}</div>
+        <div class="slot-q ${qFading ? 'fading' : ''}" id="slotQ">${currentQ ? '"' + currentQ.q + '"' : 'Press spin to get a question'}</div>
+      </div>
+      <div class="slot-controls">
+        <select class="slot-select" id="catSelect" onchange="setCat(this.value)">
+          <option value="all" ${spinCat==='all'?'selected':''}>All categories (${allQs.length})</option>
+          ${allCats.map(c => `<option value="${c}" ${spinCat===c?'selected':''}>${c} (${allQs.filter(q=>q.c===c).length})</option>`).join('')}
+        </select>
+        <button class="slot-spin" onclick="spinQ()">Spin</button>
+      </div>
+    </div>
+
+    <div class="add-q-box">
+      <div class="add-q-label">Add your own</div>
+      <div class="add-q-row">
+        <select class="add-q-select" id="newCatSel">
+          ${allCats.map(c => `<option value="${c}">${c}</option>`).join('')}
+          <option value="__new__">+ New category…</option>
+        </select>
+        <input class="add-q-input" id="newQInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter')addQ()">
+        <button class="add-q-btn" onclick="addQ()">Add</button>
+      </div>
+      <div class="custom-q-list" id="customQList">
+        ${customQs.map((q, i) => `
+          <div class="custom-q-item">
+            <span class="custom-q-cat">${q.c}</span>
+            <span class="custom-q-text">"${q.q}"</span>
+            <button class="custom-q-remove" onclick="removeQ(${i})">×</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function setCat(val) { spinCat = val; renderContent(); }
+
+function spinQ() {
+  const allQs = [...baseQuestions, ...customQs];
+  const pool = spinCat === 'all' ? allQs : allQs.filter(q => q.c === spinCat);
+  if (!pool.length) return;
+  const slotQ = document.getElementById('slotQ');
+  if (slotQ) slotQ.classList.add('fading');
+  setTimeout(() => {
+    let idx;
+    do { idx = Math.floor(Math.random() * pool.length); } while (pool.length > 1 && idx === lastQIdx);
+    lastQIdx = idx;
+    currentQ = pool[idx];
+    renderContent();
+  }, 180);
+}
+
+function addQ() {
+  const catSel = document.getElementById('newCatSel');
+  const input = document.getElementById('newQInput');
+  if (!input) return;
+  const q = input.value.trim();
+  if (!q) return;
+  let cat = catSel ? catSel.value : baseCategories[0];
+  if (cat === '__new__') {
+    cat = prompt('Enter new category name:') || 'Custom';
+  }
+  customQs.push({ c: cat, q });
+  renderContent();
+}
+
+function removeQ(idx) {
+  customQs.splice(idx, 1);
+  renderContent();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
